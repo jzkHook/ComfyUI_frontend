@@ -1,14 +1,14 @@
 <template>
   <SidebarTabTemplate :title="$t('sideToolbar.nodeLibrary')">
     <template #tool-buttons>
-      <Button
+      <!-- <Button
         class="new-folder-button"
         icon="pi pi-folder-plus"
         text
         severity="secondary"
         @click="nodeBookmarkTreeExplorerRef?.addNewBookmarkFolder()"
         v-tooltip="$t('newFolder')"
-      />
+      /> -->
       <Button
         class="sort-button"
         :icon="alphabeticalSort ? 'pi pi-sort-alpha-down' : 'pi pi-sort-alt'"

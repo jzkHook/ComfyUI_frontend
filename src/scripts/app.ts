@@ -2019,10 +2019,12 @@ export class ComfyApp {
 
       constructor(title?: string) {
         super(title)
-        const requiredInputs = nodeData.input.required
+        this.init()
+      }
 
+      async init() {
+        const requiredInputs = nodeData.input.required
         var inputs = nodeData['input']['required']
-        console.log(inputs)
         if (nodeData['input']['optional'] != undefined) {
           inputs = Object.assign(
             {},
@@ -2033,6 +2035,7 @@ export class ComfyApp {
         const config = { minWidth: 1, minHeight: 1 }
         for (const inputName in inputs) {
           const inputData = inputs[inputName]
+
           const type = inputData[0]
           const inputIsRequired = requiredInputs && inputName in requiredInputs
 
@@ -2040,6 +2043,12 @@ export class ComfyApp {
           const widgetType = self.getWidgetType(inputData, inputName)
           if (widgetType) {
             if (widgetType === 'COMBO') {
+              if (nodeId === 'LoadImage' && inputName === 'image') {
+                const resp = await api.getUserUploads('image')
+                console.log(resp, 'resp')
+                const imagesArr = (resp ?? []).map((i) => i.filename)
+                inputData[0] = imagesArr || []
+              }
               Object.assign(
                 config,
                 self.widgets.COMBO(this, inputName, inputData, app) || {}
@@ -2398,6 +2407,9 @@ export class ComfyApp {
         // If you break something in the backend and want to patch workflows in the frontend
         // This is the place to do this
         for (let widget of node.widgets) {
+          if (node.type === 'LoadImage') {
+            console.log(widget)
+          }
           if (node.type == 'KSampler' || node.type == 'KSamplerAdvanced') {
             if (widget.name == 'sampler_name') {
               if (
@@ -2649,7 +2661,25 @@ export class ComfyApp {
         for (let i = 0; i < batchCount; i++) {
           const p = await this.graphToPrompt()
           try {
-            const res = await api.queuePrompt(number, p)
+            let activeWorkflow = this.workflowManager.activeWorkflow
+            const { workflow: urlWorkflow } = useUrlSearchParams()
+            let workflow_id = (activeWorkflow.path ||
+              urlWorkflow ||
+              '') as string
+            if (!workflow_id) {
+              const createworkflowResp = await api.createWorkflow({
+                name: activeWorkflow.name,
+                workflow_data: p.workflow,
+                description: ''
+              })
+              if (createworkflowResp.code === 0)
+                workflow_id = createworkflowResp.data
+              if (createworkflowResp.code !== 0) {
+                useToastStore().addAlert(`Error please saving workflow prompt`)
+                break
+              }
+            }
+            const res = await api.queuePrompt(number, p, workflow_id)
             if (res.code == 0) {
               const task_id = res.data.task_id
               if (task_id) {
@@ -3051,20 +3081,27 @@ export class ComfyApp {
         detail: '排队中...'
       })
       const result = await this.pollingPrompt(taskId)
+      // save images
+      // {
+      //   node: `${item.node_id}`,
+      //   display_node: `${item.display_node_id}`,
+      //   output: {
+      //     images: [
+      //       {
+      //         filename: item.url,
+      //         subfolder: '',
+      //         type: 'output'
+      //       }
+      //     ]
+      //   }
+      // }
       result.forEach((item) => {
         api.dispatchEvent(
           new CustomEvent('executed', {
             detail: {
-              node: `${item.node_id}`,
-              display_node: `${item.node_id}`,
-              output: {
-                images: [
-                  {
-                    filename: item.url,
-                    type: 'output'
-                  }
-                ]
-              }
+              node: item.id,
+              display_node: item.display_node_id,
+              output: item.output
             }
           })
         )

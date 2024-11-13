@@ -502,8 +502,10 @@ export const ComfyWidgets: Record<string, ComfyWidgetConstructor> = {
       // img.src = api.apiURL(
       //   `/view?filename=${encodeURIComponent(name)}&type=input&subfolder=${subfolder}${app.getPreviewFormatParam()}${app.getRandParam()}`
       // )
-      console.log('showImage', name)
-      img.src = `http://10.99.0.122/${encodeURIComponent(name)}&type=input&subfolder=${subfolder}${app.getPreviewFormatParam()}${app.getRandParam()}`
+      const baseUrl = (import.meta.env.VITE_BASE_URL || '') + '/media/input'
+      const imageSrc = `${baseUrl}/${encodeURIComponent(name)}?type=input${app.getPreviewFormatParam()}${app.getRandParam()}`
+      console.log('showImage', imageSrc)
+      img.src = imageSrc
       // @ts-expect-error
       node.setSizeForImage?.()
     }
@@ -557,29 +559,32 @@ export const ComfyWidgets: Record<string, ComfyWidgetConstructor> = {
     })
 
     async function uploadFile(file, updateNode, pasted = false) {
+      console.log('uploadFile')
       try {
         // Wrap file in formdata so it includes filename
         const body = new FormData()
-        body.append('image', file)
+        body.append('file ', file)
         if (pasted) body.append('subfolder', 'pasted')
-        const resp = await api.fetchApi('/upload/image', {
+        const resp = await api.fetchApi('/upload/', {
           method: 'POST',
           body
         })
 
         if (resp.status === 200) {
-          const data = await resp.json()
+          const res = await resp.json()
+          const data = res.data
           // Add the file to the dropdown list and update the widget value
-          let path = data.name
-          if (data.subfolder) path = data.subfolder + '/' + path
+          let path = data.url
+          let pathname = data.filename
+          if (data.subfolder) path = data.subfolder + '/' + pathname
 
-          if (!imageWidget.options.values.includes(path)) {
-            imageWidget.options.values.push(path)
+          if (!imageWidget.options.values.includes(pathname)) {
+            imageWidget.options.values.push(pathname)
           }
 
           if (updateNode) {
             showImage(path)
-            imageWidget.value = path
+            imageWidget.value = pathname
           }
         } else {
           useToastStore().addAlert(resp.status + ' - ' + resp.statusText)

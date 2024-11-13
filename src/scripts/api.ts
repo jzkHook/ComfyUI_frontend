@@ -19,7 +19,7 @@ import {
 import axios from 'axios'
 import { useUrlSearchParams } from '@vueuse/core'
 
-import data from '@/ttt.json'
+// import data from '@/ttt.json'
 
 interface QueuePromptRequestBody {
   client_id: string
@@ -287,10 +287,10 @@ class ComfyApi extends EventTarget {
   async getNodeDefs({ validate = false }: { validate?: boolean } = {}): Promise<
     Record<string, ComfyNodeDef>
   > {
-    // const resp = await this.fetchApi('/object_info/', { cache: 'no-store' })
-    // const result = await resp.json();
-    // const objectInfoUnsafe = result.data;
-    const objectInfoUnsafe = data
+    const resp = await this.fetchApi('/object_info/', { cache: 'no-store' })
+    const result = await resp.json()
+    const objectInfoUnsafe = result.data
+    // const objectInfoUnsafe = data
 
     if (!validate) {
       return objectInfoUnsafe
@@ -319,7 +319,11 @@ class ComfyApi extends EventTarget {
    * @param {number} number The index at which to queue the prompt, passing -1 will insert the prompt at the front of the queue
    * @param {object} prompt The prompt data to queue
    */
-  async queuePrompt(number: number, { output, workflow }): Promise<PromptResp> {
+  async queuePrompt(
+    number: number,
+    { output, workflow },
+    workflow_id: string
+  ): Promise<PromptResp> {
     // Promise<PromptResponse>
     const body: QueuePromptRequestBody = {
       client_id: this.clientId,
@@ -333,8 +337,7 @@ class ComfyApi extends EventTarget {
     } else if (number != 0) {
       body.number = number
     }
-
-    const workflow_id = useUrlSearchParams()?.workflow as string
+    console.log(workflow_id, 'queuePrompt')
     const promptParams = `${new URLSearchParams({ workflow_id })}`
     const res = await this.fetchApi(`/prompt/?${promptParams}`, {
       method: 'POST',
@@ -802,6 +805,14 @@ class ComfyApi extends EventTarget {
       body: JSON.stringify(data)
     })
     return res.json()
+  }
+
+  async getUserUploads(data_type: string = 'all'): Promise<any> {
+    const res = await this.fetchApi(`/uploads/?data_type=${data_type}`, {
+      method: 'get'
+    })
+    const result = await res.json()
+    return result || []
   }
 
   async getLogs(): Promise<string> {

@@ -1,13 +1,13 @@
 <template>
   <SidebarTabTemplate :title="$t('sideToolbar.workflows')">
     <template #tool-buttons>
-      <Button
+      <!-- <Button
         class="browse-templates-button"
         icon="pi pi-th-large"
         v-tooltip="$t('sideToolbar.browseTemplates')"
         text
         @click="() => commandStore.execute('Comfy.BrowseTemplates')"
-      />
+      /> -->
       <Button
         class="open-workflow-button"
         icon="pi pi-folder-open"
@@ -79,9 +79,9 @@
             :roots="renderTreeNode(workflowStore.workflowsTree).children"
             v-model:expandedKeys="expandedKeys"
           >
-            <template #node="{ node }">
+            <!-- <template #node="{ node }">
               <WorkflowTreeLeaf :node="node" />
-            </template>
+            </template> -->
           </TreeExplorer>
         </div>
       </div>

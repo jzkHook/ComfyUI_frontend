@@ -14,6 +14,7 @@ import { markRaw, toRaw } from 'vue'
 import { IWorkflowJSON } from '@/types/apiTypes'
 import { useToastStore } from '@/stores/toastStore'
 import { showPromptDialog } from '@/services/dialogService'
+// import { useUrlSearchParams } from '@vueuse/core'
 
 export class ComfyWorkflowManager extends EventTarget {
   executionStore: ReturnType<typeof useExecutionStore> | null
@@ -82,15 +83,19 @@ export class ComfyWorkflowManager extends EventTarget {
         api.getWorkflowList()
         // this.workflowBookmarkStore?.loadBookmarks()
       ])
+      // const { workflow: path } = useUrlSearchParams();
+      // 列表不包括初始的workflow
       files.forEach((file: IWorkflowJSON) => {
         let workflow = this.workflowLookup[file.name]
-        console.log(workflow)
         if (!workflow) {
           workflow = new ComfyWorkflow(this, file.workflow_id, [file.name])
           this.workflowLookup[workflow.path] = workflow
         }
+        // if(path === file.workflow_id) {
+        //   const initWorkflow = this.workflows?.find(item => item.path === path)
+        //   this.setWorkflow(initWorkflow)
+        // }
       })
-
       // console.log(this.workflowLookup, "workflowLookup")
     } catch (error) {
       useToastStore().addAlert(
@@ -104,6 +109,8 @@ export class ComfyWorkflowManager extends EventTarget {
    */
   setWorkflow(workflow) {
     if (workflow && typeof workflow === 'string') {
+      console.log(workflow)
+      console.log(this.workflows)
       const found = this.workflows.find((w) => w.path === workflow)
       if (found) {
         workflow = found
