@@ -1,6 +1,6 @@
 <template>
   <div class="queue-button-group flex">
-    <SplitButton
+    <!-- <SplitButton
       class="comfyui-queue-button"
       :label="activeQueueModeMenuItem.label"
       severity="primary"
@@ -26,8 +26,20 @@
           v-tooltip="item.tooltip"
         />
       </template>
-    </SplitButton>
-    <BatchCountEdit />
+    </SplitButton> -->
+    <Button
+      data-testid="queue-button"
+      v-tooltip.bottom="$t('menu.queueWorkflow')"
+      severity="primary"
+      :label="activeQueueModeMenuItem.label"
+      @click="queuePrompt"
+    >
+      <template #icon>
+        <i-lucide:list-start v-if="workspaceStore.shiftDown" />
+        <i v-else :class="activeQueueModeMenuItem.icon" />
+      </template>
+    </Button>
+    <!-- <BatchCountEdit /> -->
     <ButtonGroup class="execution-actions flex flex-nowrap">
       <Button
         v-tooltip.bottom="$t('menu.interrupt')"
@@ -51,9 +63,9 @@
 </template>
 
 <script setup lang="ts">
-import SplitButton from 'primevue/splitbutton'
+// import SplitButton from 'primevue/splitbutton'
 import Button from 'primevue/button'
-import BatchCountEdit from './BatchCountEdit.vue'
+// import BatchCountEdit from './BatchCountEdit.vue'
 import ButtonGroup from 'primevue/buttongroup'
 import { useI18n } from 'vue-i18n'
 import {
@@ -105,9 +117,9 @@ const queueModeMenuItemLookup: Record<AutoQueueMode, MenuItem> = {
 const activeQueueModeMenuItem = computed(
   () => queueModeMenuItemLookup[queueMode.value]
 )
-const queueModeMenuItems = computed(() =>
-  Object.values(queueModeMenuItemLookup)
-)
+// const queueModeMenuItems = computed(() =>
+//   Object.values(queueModeMenuItemLookup)
+// )
 
 const executingPrompt = computed(() => !!queueCountStore.count.value)
 const hasPendingTasks = computed(() => queueCountStore.count.value > 1)

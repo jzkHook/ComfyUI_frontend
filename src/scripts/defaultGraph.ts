@@ -7,14 +7,8 @@ export const defaultGraph: ComfyWorkflowJSON = {
     {
       id: 4,
       type: 'CheckpointLoaderSimple',
-      pos: {
-        '0': 100,
-        '1': 130
-      },
-      size: {
-        '0': 320,
-        '1': 100
-      },
+      pos: [100, 130],
+      size: [320, 100],
       flags: {},
       order: 0,
       mode: 0,
@@ -52,14 +46,8 @@ export const defaultGraph: ComfyWorkflowJSON = {
     {
       id: 5,
       type: 'EmptyLatentImage',
-      pos: {
-        '0': 100,
-        '1': 358
-      },
-      size: {
-        '0': 320,
-        '1': 110
-      },
+      pos: [100, 358],
+      size: [320, 110],
       flags: {},
       order: 1,
       mode: 0,
@@ -81,14 +69,8 @@ export const defaultGraph: ComfyWorkflowJSON = {
     {
       id: 7,
       type: 'CLIPTextEncode',
-      pos: {
-        '0': 515,
-        '1': 460
-      },
-      size: {
-        '0': 400,
-        '1': 200
-      },
+      pos: [515, 460],
+      size: [400, 200],
       flags: {},
       order: 3,
       mode: 0,
@@ -117,14 +99,8 @@ export const defaultGraph: ComfyWorkflowJSON = {
     {
       id: 8,
       type: 'VAEDecode',
-      pos: {
-        '0': 1430,
-        '1': 130
-      },
-      size: {
-        '0': 210,
-        '1': 50
-      },
+      pos: [1430, 130],
+      size: [210, 50],
       flags: {},
       order: 5,
       mode: 0,
@@ -159,14 +135,8 @@ export const defaultGraph: ComfyWorkflowJSON = {
     {
       id: 9,
       type: 'SaveImage',
-      pos: {
-        '0': 1740,
-        '1': 130
-      },
-      size: {
-        '0': 320,
-        '1': 270
-      },
+      pos: [1740, 130],
+      size: [320, 270],
       flags: {},
       order: 6,
       mode: 0,
@@ -187,14 +157,8 @@ export const defaultGraph: ComfyWorkflowJSON = {
     {
       id: 3,
       type: 'KSampler',
-      pos: {
-        '0': 930,
-        '1': 110
-      },
-      size: {
-        '0': 320,
-        '1': 474
-      },
+      pos: [930, 110],
+      size: [320, 474],
       flags: {},
       order: 4,
       mode: 0,
@@ -249,14 +213,8 @@ export const defaultGraph: ComfyWorkflowJSON = {
     {
       id: 6,
       type: 'CLIPTextEncode',
-      pos: {
-        '0': 500,
-        '1': -66
-      },
-      size: {
-        '0': 400,
-        '1': 200
-      },
+      pos: [500, -66],
+      size: [400, 200],
       flags: {},
       order: 2,
       mode: 0,

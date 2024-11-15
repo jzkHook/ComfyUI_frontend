@@ -59,6 +59,7 @@
             v-for="task in visibleTasks"
             :key="task.key"
             :task="task"
+            :id="task.key"
             :isFlatTask="isExpanded || isInFolderView"
             @contextmenu="handleContextMenu"
             @preview="handlePreview"
@@ -133,15 +134,15 @@ const imageFit = computed<string>(() => settingStore.get(IMAGE_FIT))
 const ITEMS_PER_PAGE = 8
 const SCROLL_THRESHOLD = 100 // pixels from bottom to trigger load
 
-const allTasks = computed(() =>
-  isInFolderView.value
+const allTasks = computed(() => {
+  return isInFolderView.value
     ? folderTask.value
       ? folderTask.value.flatten()
       : []
     : isExpanded.value
       ? queueStore.flatTasks
       : queueStore.tasks
-)
+})
 const allGalleryItems = computed(() =>
   allTasks.value.flatMap((task: TaskItemImpl) => {
     const previewOutput = task.previewOutput

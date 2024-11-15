@@ -289,7 +289,6 @@ export class TaskItemImpl {
   }
 
   public async loadWorkflow(app: ComfyApp) {
-    console.log('queueStore')
     await app.loadGraphData(toRaw(this.workflow))
     if (this.outputs) {
       app.nodeOutputs = toRaw(this.outputs)
@@ -337,7 +336,7 @@ export const useQueueStore = defineStore('queue', {
     runningTasks: [],
     pendingTasks: [],
     historyTasks: [],
-    maxHistoryItems: 64,
+    maxHistoryItems: 20,
     isLoading: false
   }),
   getters: {
@@ -352,7 +351,7 @@ export const useQueueStore = defineStore('queue', {
       return this.tasks.flatMap((task: TaskItemImpl) => task.flatten())
     },
     lastHistoryQueueIndex(state) {
-      return state.historyTasks.length ? state.historyTasks[0].queueIndex : -1
+      return state.historyTasks.length ? state.historyTasks.length : -1 // state.historyTasks[0].queueIndex
     },
     hasPendingTasks(state) {
       return state.pendingTasks.length > 0
@@ -363,8 +362,11 @@ export const useQueueStore = defineStore('queue', {
     async update() {
       this.isLoading = true
       try {
-        const [queue, history] = await Promise.all([
-          api.getQueue(),
+        // const [queue, history] = await Promise.all([
+        //   api.getQueue(),
+        //   api.getHistory(this.maxHistoryItems)
+        // ])
+        const [history] = await Promise.all([
           api.getHistory(this.maxHistoryItems)
         ])
 
@@ -382,8 +384,8 @@ export const useQueueStore = defineStore('queue', {
             // Desc order to show the latest tasks first
             .sort((a, b) => b.queueIndex - a.queueIndex)
 
-        this.runningTasks = toClassAll(queue.Running)
-        this.pendingTasks = toClassAll(queue.Pending)
+        // this.runningTasks = toClassAll(queue.Running)
+        // this.pendingTasks = toClassAll(queue.Pending)
 
         // Process history items
         const allIndex = new Set(
@@ -394,12 +396,13 @@ export const useQueueStore = defineStore('queue', {
             (item) => item.prompt[0] > this.lastHistoryQueueIndex
           )
         )
+
         const existingHistoryItems = this.historyTasks.filter(
           (item: TaskItemImpl) => allIndex.has(item.queueIndex)
         )
         this.historyTasks = [...newHistoryItems, ...existingHistoryItems]
           .slice(0, this.maxHistoryItems)
-          .sort((a, b) => b.queueIndex - a.queueIndex)
+          .sort((a, b) => a.queueIndex - b.queueIndex)
       } finally {
         this.isLoading = false
       }
@@ -408,11 +411,14 @@ export const useQueueStore = defineStore('queue', {
       if (targets.length === 0) {
         return
       }
-      await Promise.all(targets.map((type) => api.clearItems(type)))
+      await Promise.all(targets.map((type) => api.clearItems()))
       await this.update()
     },
     async delete(task: TaskItemImpl) {
-      await api.deleteItem(task.apiTaskType, task.promptId)
+      const res = await api.deleteItem(task.promptId)
+      if (res.code !== 0) {
+        return
+      }
       await this.update()
     }
   }

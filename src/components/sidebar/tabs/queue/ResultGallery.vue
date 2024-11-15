@@ -21,8 +21,8 @@
   >
     <template #item="{ item }">
       <ComfyImage
-        :key="item.url"
-        :src="item.url"
+        :key="item.filename"
+        :src="baseUrl + item.filename"
         :contain="false"
         class="galleria-image"
         v-if="item.isImage"
@@ -39,6 +39,7 @@ import { ResultItemImpl } from '@/stores/queueStore'
 import ComfyImage from '@/components/common/ComfyImage.vue'
 import ResultVideo from './ResultVideo.vue'
 
+const baseUrl = (import.meta.env.VITE_BASE_URL || '') + '/'
 const galleryVisible = ref(false)
 
 const emit = defineEmits<{

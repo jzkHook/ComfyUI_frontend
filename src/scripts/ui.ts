@@ -264,7 +264,7 @@ class ComfyList {
                   ? item.remove
                   : {
                       name: 'Delete',
-                      cb: () => api.deleteItem(this.#type, item.prompt[1])
+                      cb: () => api.deleteItem(item.prompt[1])
                     }
               return $el('div', { textContent: item.prompt[0] + ': ' }, [
                 $el('button', {
@@ -300,7 +300,9 @@ class ComfyList {
         $el('button', {
           textContent: 'Clear ' + this.#text,
           onclick: async () => {
-            await api.clearItems(this.#type)
+            const resp = await api.clearItems()
+            console.log(resp)
+            if (resp.code !== 0) return
             await this.load()
           }
         }),

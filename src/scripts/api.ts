@@ -19,8 +19,6 @@ import {
 import axios from 'axios'
 import { useUrlSearchParams } from '@vueuse/core'
 
-// import data from '@/ttt.json'
-
 interface QueuePromptRequestBody {
   client_id: string
   // Mapping from node id to node info + input values
@@ -496,7 +494,7 @@ class ComfyApi extends EventTarget {
     max_items: number = 200
   ): Promise<{ History: HistoryTaskItem[] }> {
     try {
-      const res = await this.fetchApi(`/history?max_items=${max_items}`)
+      const res = await this.fetchApi(`/history?max_item=${max_items}`)
       const json: Promise<HistoryTaskItem[]> = await res.json()
       return {
         History: Object.values(json).map((item) => ({
@@ -543,16 +541,24 @@ class ComfyApi extends EventTarget {
    * @param {string} type The type of item to delete, queue or history
    * @param {number} id The id of the item to delete
    */
-  async deleteItem(type: string, id: string) {
-    await this.#postItem(type, { delete: [id] })
+  async deleteItem(id: string) {
+    // await this.#postItem(type, { delete: [id] })
+    const resp = await this.fetchApi(`/task/${id}/`, {
+      method: 'delete'
+    })
+    return resp.json()
   }
 
   /**
    * Clears the specified list
    * @param {string} type The type of list to clear, queue or history
    */
-  async clearItems(type: string) {
-    await this.#postItem(type, { clear: true })
+  async clearItems() {
+    // await this.#postItem(type, { clear: true })
+    const resp = await this.fetchApi(`/tasks/`, {
+      method: 'delete'
+    })
+    return resp.json()
   }
 
   /**

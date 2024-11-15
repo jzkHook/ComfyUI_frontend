@@ -2,7 +2,7 @@
   <div class="result-container" ref="resultContainer">
     <ComfyImage
       v-if="result.isImage"
-      :src="result.url"
+      :src="baseUrl + result.filename"
       class="task-output-image"
       :contain="imageFit === 'contain'"
     />
@@ -30,6 +30,8 @@ import Button from 'primevue/button'
 import { computed, onMounted, ref } from 'vue'
 import { useSettingStore } from '@/stores/settingStore'
 import ResultVideo from './ResultVideo.vue'
+
+const baseUrl = (import.meta.env.VITE_BASE_URL || '') + '/'
 
 const props = defineProps<{
   result: ResultItemImpl

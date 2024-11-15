@@ -705,7 +705,8 @@ export class ComfyApp {
             imagesChanged = true
             imgURLs = imgURLs.concat(
               output.images.map((params) => {
-                const baseUrl = import.meta.env.VITE_BASE_URL || ''
+                let baseUrl = import.meta.env.VITE_BASE_URL || ''
+                if (!params.filename.startsWith('/')) baseUrl += '/'
                 const urlPath =
                   `${baseUrl}${params.filename}?type=${params.type}` +
                   (this.animatedImages ? '' : app.getPreviewFormatParam()) +
@@ -3078,7 +3079,7 @@ export class ComfyApp {
       useToastStore().add({
         severity: 'warn',
         summary: '提示',
-        detail: '排队中...'
+        detail: '执行中...'
       })
       const result = await this.pollingPrompt(taskId)
       // save images
@@ -3095,17 +3096,6 @@ export class ComfyApp {
       //     ]
       //   }
       // }
-      result.forEach((item) => {
-        api.dispatchEvent(
-          new CustomEvent('executed', {
-            detail: {
-              node: item.id,
-              display_node: item.display_node_id,
-              output: item.output
-            }
-          })
-        )
-      })
       useToastStore().removeAll()
     }
   }
@@ -3117,6 +3107,17 @@ export class ComfyApp {
         const res = await api.getPromptPulling(taskId)
         if (res.code == 0) {
           const { status, result } = res.data
+          result.forEach((item) => {
+            api.dispatchEvent(
+              new CustomEvent('executed', {
+                detail: {
+                  node: item.id,
+                  display_node: item.display_node_id,
+                  output: item.output
+                }
+              })
+            )
+          })
           if (status === 'done') {
             this.#queuePullingItems = this.#queuePullingItems?.filter(
               (id) => id != taskId

@@ -79,14 +79,15 @@ const props = defineProps<{
 }>()
 
 const flatOutputs = props.task.flatOutputs
+console.log(flatOutputs, 'flatOutputs')
 const coverResult = flatOutputs.length
   ? props.task.previewOutput || flatOutputs[0]
   : null
 // Using `==` instead of `===` because NodeId can be a string or a number
 const node: ComfyNode | null = flatOutputs.length
-  ? props.task.workflow.nodes.find(
+  ? (props.task.workflow.nodes.find(
       (n: ComfyNode) => n.id == coverResult.nodeId
-    ) ?? null
+    ) ?? null)
   : null
 const progressPreviewBlobUrl = ref('')
 
