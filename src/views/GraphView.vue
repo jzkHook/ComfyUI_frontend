@@ -4,6 +4,7 @@
   <TopMenubar />
   <GraphCanvas @ready="onGraphReady" />
   <GlobalToast />
+  <GlobalFtToast />
   <UnloadWindowConfirmDialog />
   <BrowserTabTitle />
 </template>
@@ -28,6 +29,7 @@ import {
   useWorkflowBookmarkStore
 } from '@/stores/workflowStore'
 import GlobalToast from '@/components/toast/GlobalToast.vue'
+import GlobalFtToast from '@/components/toast/GlobalFtToast.vue'
 import UnloadWindowConfirmDialog from '@/components/dialog/UnloadWindowConfirmDialog.vue'
 import BrowserTabTitle from '@/components/BrowserTabTitle.vue'
 import TopMenubar from '@/components/topbar/TopMenubar.vue'

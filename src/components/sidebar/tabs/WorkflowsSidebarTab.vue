@@ -211,7 +211,7 @@ const renderTreeNode = (node: TreeNode): TreeExplorerNode<ComfyWorkflow> => {
 }
 
 const selectionKeys = computed(() => ({
-  [`root/${workflowStore.activeWorkflow?.name}.json`]: true
+  [`root/${workflowStore.activeWorkflow?.path}`]: true
 }))
 </script>
 

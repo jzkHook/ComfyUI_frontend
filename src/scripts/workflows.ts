@@ -96,7 +96,6 @@ export class ComfyWorkflowManager extends EventTarget {
         //   this.setWorkflow(initWorkflow)
         // }
       })
-      // console.log(this.workflowLookup, "workflowLookup")
     } catch (error) {
       useToastStore().addAlert(
         'Error loading workflows: ' + (error.message ?? error)
@@ -107,24 +106,27 @@ export class ComfyWorkflowManager extends EventTarget {
   /**
    * @param {string | ComfyWorkflow | null} workflow
    */
-  setWorkflow(workflow) {
+  async setWorkflow(workflow) {
+    console.log(workflow, 'loadGraphData setWorkflow')
     if (workflow && typeof workflow === 'string') {
-      console.log(workflow)
-      console.log(this.workflows)
       const found = this.workflows.find((w) => w.path === workflow)
       if (found) {
         workflow = found
         workflow.unsaved = !workflow
       }
     }
-
     if (!(toRaw(workflow) instanceof ComfyWorkflow)) {
       // Still not found, either reloading a deleted workflow or blank
+      const workflowName = workflow
+        ? await api.getWorkflowName(workflow)
+        : workflow
+
       workflow = new ComfyWorkflow(
         this,
         workflow ||
           'Unsaved Workflow' +
-            (this.#unsavedCount++ ? ` (${this.#unsavedCount})` : '')
+            (this.#unsavedCount++ ? ` (${this.#unsavedCount})` : ''),
+        workflowName ? [workflowName] : undefined
       )
       this.workflowLookup[workflow.key] = workflow
     }
@@ -257,7 +259,6 @@ export class ComfyWorkflow {
 
   async getWorkflowData() {
     const resp = await api.getWorkflowJSON(this.path)
-    console.log(resp)
     if (!resp) {
       useToastStore().addAlert(`Error loading workflow file`)
       return
@@ -309,7 +310,6 @@ export class ComfyWorkflow {
 
   async rename(path: string, workflow: string) {
     path = trimJsonExt(path)
-    console.log(path)
     let resp = await api.ftSaveWorkflow({ name: path }, workflow)
     if (resp.code != 0) {
       useToastStore().addAlert(`Error renaming workflow file error`)
@@ -446,7 +446,6 @@ export class ComfyWorkflow {
     // }
 
     // path = (await resp.json()).substring('workflows/'.length)
-
     if (!this.path) {
       // Saved new workflow, patch this instance
       const oldKey = this.key
@@ -454,7 +453,7 @@ export class ComfyWorkflow {
 
       // Update workflowLookup: change the key from the old unsaved path to the new saved path
       delete this.manager.workflowStore.workflowLookup[oldKey]
-      this.manager.workflowStore.workflowLookup[this.key] = this
+      // this.manager.workflowStore.workflowLookup[this.key] = this
 
       await this.manager.loadWorkflows()
       this.unsaved = false

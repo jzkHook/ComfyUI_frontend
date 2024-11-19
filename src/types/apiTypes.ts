@@ -189,7 +189,8 @@ const zHistoryTaskItem = z.object({
   taskType: z.literal('History'),
   prompt: zTaskPrompt,
   status: zStatus.optional(),
-  outputs: zTaskOutput
+  outputs: zTaskOutput,
+  workflow_id: z.string().optional()
 })
 
 const zTaskItem = z.union([

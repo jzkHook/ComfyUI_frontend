@@ -42,6 +42,48 @@ export function buildTree<T>(
   return root
 }
 
+export function buildTree111<T>(
+  items: T[],
+  key: string | ((item: T) => string[])
+): TreeNode {
+  const root: TreeNode = {
+    key: 'root',
+    label: 'root',
+    children: []
+  }
+
+  const map: Record<string, TreeNode> = {
+    root: root
+  }
+
+  for (const item of items) {
+    const keys = typeof key === 'string' ? item[key] : key(item)
+    let parent = root
+    for (let i = 0; i < keys.length; i++) {
+      const k = keys[i]
+      // 'a/b/c/' represents an empty folder 'c' in folder 'b' in folder 'a'
+      // 'a/b/c/' is split into ['a', 'b', 'c', '']
+      if (k === '' && i === keys.length - 1) break
+
+      const id = parent.key + '/' + item.path
+      if (!map[id]) {
+        const node: TreeNode = {
+          key: id,
+          label: k,
+          leaf: false,
+          children: []
+        }
+        map[id] = node
+        parent.children.push(node)
+      }
+      parent = map[id]
+    }
+    parent.leaf = keys[keys.length - 1] !== ''
+    parent.data = item
+  }
+  return root
+}
+
 export function flattenTree<T>(tree: TreeNode): T[] {
   const result: T[] = []
   const stack: TreeNode[] = [tree]

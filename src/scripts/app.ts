@@ -47,6 +47,7 @@ import {
 } from '@/services/dialogService'
 import { useSettingStore } from '@/stores/settingStore'
 import { useToastStore } from '@/stores/toastStore'
+import { useFtToastStore } from '@/stores/ftToastStore'
 import { useModelStore } from '@/stores/modelStore'
 import type { ToastMessageOptions } from 'primevue/toast'
 import { useWorkspaceStore } from '@/stores/workspaceStateStore'
@@ -57,6 +58,7 @@ import { KeyComboImpl, useKeybindingStore } from '@/stores/keybindingStore'
 import { useCommandStore } from '@/stores/commandStore'
 import { shallowReactive } from 'vue'
 import { useUrlSearchParams } from '@vueuse/core'
+import { ComfyNode } from '../types/comfyWorkflow'
 
 export const ANIM_PREVIEW_WIDGET = '$$comfy_animation_preview'
 
@@ -2254,11 +2256,11 @@ export class ComfyApp {
     }
 
     let reset_invalid_values = false
+    let workflowId = (useUrlSearchParams()?.workflow || '') as string
     if (!graphData) {
-      const { workflow } = useUrlSearchParams()
       // url params workflow id
-      if (workflow) {
-        const data = await api.getWorkflowJSON(workflow as string)
+      if (workflowId) {
+        const data = await api.getWorkflowJSON(workflowId as string)
         graphData = data || defaultGraph
       } else {
         graphData = defaultGraph
@@ -2272,9 +2274,8 @@ export class ComfyApp {
     } else {
       graphData = structuredClone(graphData)
     }
-
     try {
-      this.workflowManager.setWorkflow(workflow)
+      this.workflowManager.setWorkflow(workflow || workflowId)
     } catch (error) {
       console.error(error)
     }
@@ -2685,7 +2686,7 @@ export class ComfyApp {
               const task_id = res.data.task_id
               if (task_id) {
                 this.#queuePullingItems.push(task_id)
-                this.pollingPromptList()
+                await this.pollingPromptList(p.workflow.nodes)
               }
             }
             // this.lastNodeErrors = res.node_errors
@@ -2731,6 +2732,7 @@ export class ComfyApp {
     } finally {
       this.#processingQueue = false
     }
+    console.log('promptQueued')
     api.dispatchEvent(
       new CustomEvent('promptQueued', { detail: { number, batchCount } })
     )
@@ -3073,40 +3075,72 @@ export class ComfyApp {
     this.canvas.centerOnNode(graphNode)
   }
 
-  async pollingPromptList() {
+  async pollingPromptList(nodes: ComfyNode[]) {
     const taskId = this.#queuePullingItems.slice(-1).pop()
-    if (taskId) {
-      useToastStore().add({
-        severity: 'warn',
-        summary: '提示',
-        detail: '执行中...'
-      })
-      const result = await this.pollingPrompt(taskId)
-      // save images
-      // {
-      //   node: `${item.node_id}`,
-      //   display_node: `${item.display_node_id}`,
-      //   output: {
-      //     images: [
-      //       {
-      //         filename: item.url,
-      //         subfolder: '',
-      //         type: 'output'
-      //       }
-      //     ]
-      //   }
-      // }
-      useToastStore().removeAll()
-    }
+    return new Promise(async (reslove) => {
+      if (taskId) {
+        const result = await this.pollingPrompt(taskId, nodes)
+        // save images
+        // {
+        //   node: `${item.node_id}`,
+        //   display_node: `${item.display_node_id}`,
+        //   output: {
+        //     images: [
+        //       {
+        //         filename: item.url,
+        //         subfolder: '',
+        //         type: 'output'
+        //       }
+        //     ]
+        //   }
+        // }
+        if (useFtToastStore()?.open) useFtToastStore()?.remove()
+      }
+      reslove('')
+    })
   }
-  async pollingPrompt(taskId: string): Promise<any[]> {
-    let timer = null
+  async pollingPrompt(taskId: string, nodes: ComfyNode[]): Promise<any[]> {
+    let timer = null,
+      count = 0,
+      runningNode = '0'
     return new Promise((resolve) => {
       if (timer) clearInterval(timer)
       timer = setInterval(async () => {
         const res = await api.getPromptPulling(taskId)
         if (res.code == 0) {
-          const { status, result } = res.data
+          const { status, result, tasks, current_pos, current_node } = res.data
+          let percent = 0,
+            label = ''
+          if (current_node === '0') {
+            label = '准备中'
+            percent = 0
+          } else if (current_node === 'null' || status === 'done') {
+            label = '已完成'
+            percent = 100
+          } else {
+            const currentNode = nodes.find((node) => node.id == current_node)
+            label = currentNode?.type
+              ? `生成中.. 当前节点 #${current_node} ${currentNode?.type}`
+              : '运行中'
+            if (runningNode !== current_node) {
+              runningNode = current_node
+              count++
+            }
+            percent = Math.floor((count / nodes.length) * 100)
+          }
+          const str =
+            current_pos !== 0
+              ? `正在排队中... 第${current_pos}/${tasks}位`
+              : `${label}`
+          // console.log(currentNode, "currentNode")
+          useFtToastStore().refresh({
+            message: str,
+            progressOption: {
+              showProgress: true,
+              progress: percent,
+              label
+            }
+          })
           result.forEach((item) => {
             api.dispatchEvent(
               new CustomEvent('executed', {
@@ -3127,9 +3161,10 @@ export class ComfyApp {
           }
         } else {
           if (timer) clearInterval(timer)
+          if (!useFtToastStore()?.open) useFtToastStore()?.remove()
           resolve([])
         }
-      }, 1000)
+      }, 2000)
     })
   }
 }

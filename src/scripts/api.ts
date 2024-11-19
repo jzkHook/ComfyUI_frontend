@@ -355,7 +355,7 @@ class ComfyApi extends EventTarget {
   }
 
   async getPromptPulling(task_id: string) {
-    const res = await this.fetchApi(`/${task_id}/status/`)
+    const res = await this.fetchApi(`/task/${task_id}/status/`)
     if (res.status !== 200) {
       return null
     }
@@ -770,6 +770,12 @@ class ComfyApi extends EventTarget {
     const resp = await this.fetchApi('/workflows/')
     const result = await resp.json() // Promise<{ code: number, data: IWorkflowJSON[], msg: string }>
     return result.code == 0 ? result.data || [] : []
+  }
+
+  async getWorkflowName(workflow_id: string): Promise<string> {
+    const resp = await this.fetchApi(`/workflow/${workflow_id}/name/`)
+    const result = await resp.json() // Promise<{ code: number, data: IWorkflowJSON[], msg: string }>
+    return result.code == 0 ? result.data || '' : ''
   }
 
   async ftSaveWorkflow(

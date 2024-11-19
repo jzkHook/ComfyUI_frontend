@@ -30,7 +30,6 @@ export const useModelToNodeStore = defineStore('modelToNode', {
      * @returns The node provider for the given model type name.
      */
     getNodeProvider(modelType: string): ModelNodeProvider {
-      console.log('getNodeProvider')
       this.registerDefaults()
       return this.modelToNodeMap[modelType]?.[0]
     },
@@ -41,7 +40,6 @@ export const useModelToNodeStore = defineStore('modelToNode', {
      * @returns The list of all valid node providers for the given model type name.
      */
     getAllNodeProviders(modelType: string): ModelNodeProvider[] {
-      console.log('getAllNodeProviders')
       this.registerDefaults()
       return this.modelToNodeMap[modelType] ?? []
     },
@@ -52,7 +50,6 @@ export const useModelToNodeStore = defineStore('modelToNode', {
      * @param nodeProvider The node provider to register.
      */
     registerNodeProvider(modelType: string, nodeProvider: ModelNodeProvider) {
-      console.log('registerNodeProvider')
       this.registerDefaults()
       this.modelToNodeMap[modelType] ??= []
       this.modelToNodeMap[modelType].push(nodeProvider)
@@ -65,7 +62,6 @@ export const useModelToNodeStore = defineStore('modelToNode', {
      * @param key The key to use for the node input.
      */
     quickRegister(modelType: string, nodeClass: string, key: string) {
-      console.log('quickRegister', modelType)
       this.registerNodeProvider(
         modelType,
         new ModelNodeProvider(this.nodeDefStore.nodeDefsByName[nodeClass], key)
@@ -73,7 +69,6 @@ export const useModelToNodeStore = defineStore('modelToNode', {
     },
 
     registerDefaults() {
-      console.log('registerDefaults')
       if (this.haveDefaultsLoaded) {
         return
       }

@@ -79,7 +79,6 @@ const props = defineProps<{
 }>()
 
 const flatOutputs = props.task.flatOutputs
-console.log(flatOutputs, 'flatOutputs')
 const coverResult = flatOutputs.length
   ? props.task.previewOutput || flatOutputs[0]
   : null

@@ -28,10 +28,14 @@
       </template>
     </SplitButton> -->
     <Button
+      :class="{ 'cursor-not-allowed': executingPrompt }"
       data-testid="queue-button"
-      v-tooltip.bottom="$t('menu.queueWorkflow')"
+      v-tooltip.bottom="
+        executingPrompt ? $t('menu.disabled') : $t('menu.queueWorkflow')
+      "
       severity="primary"
       :label="activeQueueModeMenuItem.label"
+      :disabled="executingPrompt"
       @click="queuePrompt"
     >
       <template #icon>

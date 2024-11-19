@@ -129,19 +129,22 @@ export class TaskItemImpl {
   readonly status?: TaskStatus
   readonly outputs: TaskOutput
   readonly flatOutputs: ReadonlyArray<ResultItemImpl>
+  readonly workflowId?: string
 
   constructor(
     taskType: TaskType,
     prompt: TaskPrompt,
     status: TaskStatus | undefined,
     outputs: TaskOutput,
-    flatOutputs?: ReadonlyArray<ResultItemImpl>
+    flatOutputs?: ReadonlyArray<ResultItemImpl>,
+    workfowId?: string
   ) {
     this.taskType = taskType
     this.prompt = prompt
     this.status = status
     this.outputs = outputs
     this.flatOutputs = flatOutputs ?? this.calculateFlatOutputs()
+    this.workflowId = workfowId || ''
   }
 
   calculateFlatOutputs(): ReadonlyArray<ResultItemImpl> {
@@ -289,7 +292,7 @@ export class TaskItemImpl {
   }
 
   public async loadWorkflow(app: ComfyApp) {
-    await app.loadGraphData(toRaw(this.workflow))
+    await app.loadGraphData(toRaw(this.workflow), true, true, this.workflowId)
     if (this.outputs) {
       app.nodeOutputs = toRaw(this.outputs)
     }
@@ -378,7 +381,9 @@ export const useQueueStore = defineStore('queue', {
                   task.taskType,
                   task.prompt,
                   task['status'],
-                  task['outputs'] || {}
+                  task['outputs'] || {},
+                  undefined,
+                  task.workflow_id
                 )
             )
             // Desc order to show the latest tasks first
