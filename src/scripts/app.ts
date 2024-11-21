@@ -59,6 +59,7 @@ import { useCommandStore } from '@/stores/commandStore'
 import { shallowReactive } from 'vue'
 import { useUrlSearchParams } from '@vueuse/core'
 import { ComfyNode } from '../types/comfyWorkflow'
+import { baseUrl } from '@/utils/config'
 
 export const ANIM_PREVIEW_WIDGET = '$$comfy_animation_preview'
 
@@ -707,10 +708,10 @@ export class ComfyApp {
             imagesChanged = true
             imgURLs = imgURLs.concat(
               output.images.map((params) => {
-                let baseUrl = import.meta.env.VITE_BASE_URL || ''
-                if (!params.filename.startsWith('/')) baseUrl += '/'
+                let url = baseUrl
+                if (!params.filename.startsWith('/')) url += '/'
                 const urlPath =
-                  `${baseUrl}${params.filename}?type=${params.type}` +
+                  `${url}${params.filename}?type=${params.type}` +
                   (this.animatedImages ? '' : app.getPreviewFormatParam()) +
                   app.getRandParam()
                 return urlPath
@@ -3077,9 +3078,16 @@ export class ComfyApp {
 
   async pollingPromptList(nodes: ComfyNode[]) {
     const taskId = this.#queuePullingItems.slice(-1).pop()
+    localStorage.setItem('currentTaskId', taskId)
+
     return new Promise(async (reslove) => {
       if (taskId) {
-        const result = await this.pollingPrompt(taskId, nodes)
+        const detail = {
+          exec_info: {
+            queue_remaining: 1
+          }
+        }
+        await this.pollingPrompt(taskId, nodes)
         // save images
         // {
         //   node: `${item.node_id}`,
@@ -3102,70 +3110,104 @@ export class ComfyApp {
   async pollingPrompt(taskId: string, nodes: ComfyNode[]): Promise<any[]> {
     let timer = null,
       count = 0,
-      runningNode = '0'
+      runningNode = '0',
+      currentPosition = -1
     return new Promise((resolve) => {
       if (timer) clearInterval(timer)
       timer = setInterval(async () => {
-        const res = await api.getPromptPulling(taskId)
-        if (res.code == 0) {
-          const { status, result, tasks, current_pos, current_node } = res.data
-          let percent = 0,
-            label = ''
-          if (current_node === '0') {
-            label = '准备中'
-            percent = 0
-          } else if (current_node === 'null' || status === 'done') {
-            label = '已完成'
-            percent = 100
-          } else {
-            const currentNode = nodes.find((node) => node.id == current_node)
-            label = currentNode?.type
-              ? `生成中.. 当前节点 #${current_node} ${currentNode?.type}`
-              : '运行中'
-            if (runningNode !== current_node) {
-              runningNode = current_node
-              count++
-            }
-            percent = Math.floor((count / nodes.length) * 100)
-          }
-          const str =
-            current_pos !== 0
-              ? `正在排队中... 第${current_pos}/${tasks}位`
-              : `${label}`
-          // console.log(currentNode, "currentNode")
-          useFtToastStore().refresh({
-            message: str,
-            progressOption: {
-              showProgress: true,
-              progress: percent,
-              label
-            }
-          })
-          result.forEach((item) => {
-            api.dispatchEvent(
-              new CustomEvent('executed', {
-                detail: {
-                  node: item.id,
-                  display_node: item.display_node_id,
-                  output: item.output
+        try {
+          const res = await api.getPromptPulling(taskId)
+          if (res.code == 0) {
+            const { status, result, tasks, current_pos, current_node } =
+              res.data
+            if (currentPosition !== current_pos) {
+              const detail = {
+                exec_info: {
+                  queue_remaining: currentPosition + 1
                 }
+              }
+              api.dispatchEvent(new CustomEvent('status', { detail }))
+              currentPosition = current_pos
+            }
+
+            let percent = 0,
+              label = ''
+
+            if (current_pos === 0) {
+              // running
+              if (current_node === '0') {
+                label = '准备中'
+                percent = 0
+              } else if (current_node === 'null' || status === 'done') {
+                label = '已完成'
+                percent = 100
+              } else {
+                const currentNode = nodes.find(
+                  (node) => node.id == current_node
+                )
+                label = currentNode?.type
+                  ? `生成中.. 当前节点 #${current_node} ${currentNode?.type}`
+                  : '运行中'
+                if (runningNode !== current_node) {
+                  runningNode = current_node
+                  count++
+                }
+                percent = Math.floor((count / nodes.length) * 100)
+              }
+              // 渲染生成结果
+              result.forEach((item) => {
+                api.dispatchEvent(
+                  new CustomEvent('executed', {
+                    detail: {
+                      node: item.id,
+                      display_node: item.display_node_id,
+                      output: item.output
+                    }
+                  })
+                )
               })
-            )
-          })
-          if (status === 'done') {
-            this.#queuePullingItems = this.#queuePullingItems?.filter(
-              (id) => id != taskId
-            )
+            }
+
+            const str =
+              current_pos !== 0
+                ? `正在排队中... 第${current_pos}/${tasks}位`
+                : `${label}`
+            // console.log(currentNode, "currentNode")
+            useFtToastStore().refresh({
+              message: str,
+              progressOption: {
+                showProgress: true,
+                progress: percent,
+                label
+              }
+            })
+            if (status === 'done') {
+              this.#queuePullingItems = this.#queuePullingItems?.filter(
+                (id) => id != taskId
+              )
+              // api.dispatchEvent(new CustomEvent('execution_success', { detail: null }));
+              if (timer) clearInterval(timer)
+              this.clearPollingPrompt()
+              resolve(result ?? [])
+            }
+          } else {
             if (timer) clearInterval(timer)
-            resolve(result ?? [])
+            this.clearPollingPrompt()
+            resolve([])
           }
-        } else {
+        } catch (e) {
           if (timer) clearInterval(timer)
-          if (!useFtToastStore()?.open) useFtToastStore()?.remove()
+          this.clearPollingPrompt()
           resolve([])
         }
       }, 2000)
     })
+  }
+
+  clearPollingPrompt() {
+    if (!useFtToastStore()?.open) useFtToastStore()?.remove()
+    api.dispatchEvent(new CustomEvent('status', { detail: null }))
+    localStorage.removeItem('currentTaskId')
   }
 }
 

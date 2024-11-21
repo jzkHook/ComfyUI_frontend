@@ -81,7 +81,13 @@ class ComfyApi extends EventTarget {
     if (token) {
       options.headers['Authorization'] = `Bearer ${token}`
     }
-    return fetch(this.apiURL(route), options)
+    return fetch(this.apiURL(route), options).then((response) => {
+      if (response.status === 401) {
+        window.parent.postMessage('toLogin', '*')
+      } else {
+        return response
+      }
+    })
   }
 
   addEventListener(
@@ -350,7 +356,6 @@ class ComfyApi extends EventTarget {
         response: await res.json()
       }
     }
-
     return await res.json()
   }
 
@@ -416,6 +421,19 @@ class ComfyApi extends EventTarget {
   }
 
   /**
+   * Gets the metadata for a model
+   * @param {string} model The model to get metadata for
+   * @returns The metadata for the model
+   */
+  async viewModelMeta(model: string) {
+    const index = model.lastIndexOf('\\') + 1
+    const modelName = model.substr(index)
+
+    const res = await this.fetchApi(`/model/meta/?name=${modelName}`)
+    return res.json()
+  }
+
+  /**
    * Tells the server to download a model from the specified URL to the specified directory and filename
    * @param {string} url The URL to download the model from
    * @param {string} model_directory The main directory (eg 'checkpoints') to save the model to
@@ -466,14 +484,19 @@ class ComfyApi extends EventTarget {
     Pending: PendingTaskItem[]
   }> {
     try {
-      const res = await this.fetchApi('/queue')
+      const res = await this.fetchApi('/queue/')
       const data = await res.json()
       return {
         // Running action uses a different endpoint for cancelling
         Running: data.queue_running.map((prompt) => ({
           taskType: 'Running',
           prompt,
-          remove: { name: 'Cancel', cb: () => api.interrupt() }
+          remove: {
+            name: 'Cancel',
+            cb: () => {
+              api.interrupt()
+            }
+          }
         })),
         Pending: data.queue_pending.map((prompt) => ({
           taskType: 'Pending',
@@ -565,7 +588,11 @@ class ComfyApi extends EventTarget {
    * Interrupts the execution of the running prompt
    */
   async interrupt() {
-    await this.#postItem('interrupt', null)
+    const taskId = localStorage.getItem('currentTaskId')
+    if (taskId) {
+      await this.deleteItem(taskId)
+    }
+    this.dispatchEvent(new CustomEvent('status', { detail: null }))
   }
 
   /**

@@ -111,13 +111,13 @@ const iconOptions = [
 ]
 
 const colorOptions = [
-  { name: t('default'), value: nodeBookmarkStore.defaultBookmarkColor },
-  { name: t('blue'), value: '#007bff' },
-  { name: t('green'), value: '#28a745' },
-  { name: t('red'), value: '#dc3545' },
-  { name: t('pink'), value: '#e83e8c' },
-  { name: t('yellow'), value: '#ffc107' },
-  { name: t('custom'), value: 'custom' }
+  { name: 'default', value: nodeBookmarkStore.defaultBookmarkColor },
+  { name: 'blue', value: '#007bff' },
+  { name: 'green', value: '#28a745' },
+  { name: 'red', value: '#dc3545' },
+  { name: 'pink', value: '#e83e8c' },
+  { name: 'yellow', value: '#ffc107' },
+  { name: 'custom', value: 'custom' }
 ]
 
 const defaultIcon = iconOptions.find(

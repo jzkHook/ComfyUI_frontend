@@ -17,7 +17,7 @@
       </div>
     </div>
     <div class="model_preview_image" v-if="modelDef.image">
-      <img :src="modelDef.image" />
+      <img :src="baseUrl + modelDef.image" />
     </div>
     <div class="model_preview_usage_hint" v-if="modelDef.usage_hint">
       <span class="model_preview_prefix">Usage hint: </span>
@@ -36,6 +36,7 @@
 
 <script setup lang="ts">
 import { ComfyModelDef } from '@/stores/modelStore'
+import { baseUrl } from '@/utils/config'
 
 const props = defineProps({
   modelDef: {

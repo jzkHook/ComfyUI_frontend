@@ -249,6 +249,7 @@ class ComfyList {
   }
 
   async load() {
+    console.log('load api.getItems(this.#type)')
     const items = await api.getItems(this.#type)
     this.element.replaceChildren(
       ...Object.keys(items).flatMap((section) => [

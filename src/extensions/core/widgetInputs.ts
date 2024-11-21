@@ -728,6 +728,7 @@ app.registerExtension({
       return true
     }
     nodeType.prototype.getExtraMenuOptions = function (_, options) {
+      console.log('getExtraMenuOptions', 'getExtraMenuOptions')
       const r = origGetExtraMenuOptions
         ? origGetExtraMenuOptions.apply(this, arguments)
         : undefined
@@ -735,6 +736,7 @@ app.registerExtension({
       if (this.widgets) {
         let toInput = []
         let toWidget = []
+        let toPanel = []
         for (const w of this.widgets) {
           if (w.options?.forceInput) {
             continue
@@ -753,6 +755,16 @@ app.registerExtension({
               toInput.push({
                 content: `Convert ${w.name} to input`,
                 callback: () => convertToInput(this, w, config)
+              })
+
+              toPanel.push({
+                content: `${w.name}`,
+                callback: () => {
+                  // convertToInput(this, w, config)
+                  console.log(this, 'this')
+                  console.log(config, 'config')
+                  console.log(w, 'w')
+                }
               })
             }
           }
@@ -781,6 +793,18 @@ app.registerExtension({
             })
           } else {
             options.push(...toWidget, null)
+          }
+        }
+        if (toPanel.length) {
+          if (useConversionSubmenusSetting.value) {
+            options.push({
+              content: '添加至面板',
+              submenu: {
+                options: toPanel
+              }
+            })
+          } else {
+            options.push(...toPanel, null)
           }
         }
       }

@@ -8,7 +8,7 @@
         >
           <span
             class="model-lib-model-icon"
-            :style="{ backgroundImage: `url(${modelDef.image})` }"
+            :style="{ backgroundImage: `url(${baseUrl + modelDef.image})` }"
           >
           </span>
         </span>
@@ -37,6 +37,7 @@ import {
   ref
 } from 'vue'
 import { useSettingStore } from '@/stores/settingStore'
+import { baseUrl } from '@/utils/config'
 
 const props = defineProps<{
   node: RenderedTreeExplorerNode<ComfyModelDef>
@@ -113,9 +114,10 @@ onMounted(() => {
   modelContentElement.value = container.value?.closest('.p-tree-node-content')
   modelContentElement.value?.addEventListener('mouseenter', handleMouseEnter)
   modelContentElement.value?.addEventListener('mouseleave', handleMouseLeave)
-  if (!modelDef.value.is_fake_object) {
-    modelDef.value.load()
-  }
+
+  // if (!modelDef.value.is_fake_object) {
+  //   modelDef.value.load()
+  // }
 })
 
 onUnmounted(() => {

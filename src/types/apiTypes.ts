@@ -175,12 +175,14 @@ const zRunningTaskItem = z.object({
   remove: z.object({
     name: z.literal('Cancel'),
     cb: z.function()
-  })
+  }),
+  workflow_id: z.string().optional()
 })
 
 const zPendingTaskItem = z.object({
   taskType: z.literal('Pending'),
-  prompt: zTaskPrompt
+  prompt: zTaskPrompt,
+  workflow_id: z.string().optional()
 })
 
 const zTaskOutput = z.record(zNodeId, zOutputs)

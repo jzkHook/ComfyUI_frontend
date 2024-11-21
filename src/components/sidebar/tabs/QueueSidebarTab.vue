@@ -196,9 +196,9 @@ const toggleExpanded = () => {
 }
 
 const removeTask = (task: TaskItemImpl) => {
-  if (task.isRunning) {
-    api.interrupt()
-  }
+  // if (task.isRunning) {
+  //   api.interrupt()
+  // }
   queueStore.delete(task)
 }
 

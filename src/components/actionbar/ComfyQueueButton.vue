@@ -126,7 +126,7 @@ const activeQueueModeMenuItem = computed(
 // )
 
 const executingPrompt = computed(() => !!queueCountStore.count.value)
-const hasPendingTasks = computed(() => queueCountStore.count.value > 1)
+const hasPendingTasks = computed(() => !!queueCountStore.count.value) // > 1
 
 const commandStore = useCommandStore()
 const queuePrompt = (e: MouseEvent) => {

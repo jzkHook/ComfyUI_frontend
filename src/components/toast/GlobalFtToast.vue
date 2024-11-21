@@ -30,7 +30,7 @@ const pconfig = {
   progress: 0,
   showProgress: false
 }
-const progressConfig = reactive({ ...pconfig })
+const progressConfig = reactive(Object.assign({}, pconfig))
 const ftToastStore = useFtToastStore()
 
 watch(

@@ -36,6 +36,11 @@ export const useFtToastStore = defineStore('ftToast', {
     },
     remove() {
       this.open = false
+      this.message = ''
+      this.progressOption = {
+        showProgress: false,
+        progress: 0
+      }
     }
   }
 })

@@ -5,6 +5,7 @@ import type { IWidget, LGraphNode } from '@comfyorg/litegraph'
 import { InputSpec } from '@/types/apiTypes'
 import { useSettingStore } from '@/stores/settingStore'
 import { useToastStore } from '@/stores/toastStore'
+import { baseUrl } from '@/utils/config'
 
 export type ComfyWidgetConstructor = (
   node: LGraphNode,
@@ -502,8 +503,8 @@ export const ComfyWidgets: Record<string, ComfyWidgetConstructor> = {
       // img.src = api.apiURL(
       //   `/view?filename=${encodeURIComponent(name)}&type=input&subfolder=${subfolder}${app.getPreviewFormatParam()}${app.getRandParam()}`
       // )
-      const baseUrl = (import.meta.env.VITE_BASE_URL || '') + '/media/input'
-      const imageSrc = `${baseUrl}/${encodeURIComponent(name)}?type=input${app.getPreviewFormatParam()}${app.getRandParam()}`
+      const url = baseUrl + '/media/input'
+      const imageSrc = `${url}/${encodeURIComponent(name)}?type=input${app.getPreviewFormatParam()}${app.getRandParam()}`
       console.log('showImage', imageSrc)
       img.src = imageSrc
       // @ts-expect-error

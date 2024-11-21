@@ -85,8 +85,8 @@ export class ComfyModelDef {
     }
     this.is_load_requested = true
     try {
-      const metadata = await api.viewMetadata(this.directory, this.file_name)
-      if (!metadata) {
+      const metadata = await api.viewModelMeta(this.file_name)
+      if (!metadata || !metadata?.name) {
         return
       }
       this.title =
@@ -120,7 +120,8 @@ export class ComfyModelDef {
           'modelspec.thumbnail',
           'thumbnail',
           'image',
-          'icon'
+          'icon',
+          'cover'
         ) || ''
       const tagsCommaSeparated =
         _findInMetadata(metadata, 'modelspec.tags', 'tags') || ''

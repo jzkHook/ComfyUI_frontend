@@ -2,7 +2,7 @@
   <div class="result-container" ref="resultContainer">
     <ComfyImage
       v-if="result.isImage"
-      :src="baseUrl + result.filename"
+      :src="baseUrl + '/' + result.filename"
       class="task-output-image"
       :contain="imageFit === 'contain'"
     />
@@ -31,7 +31,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useSettingStore } from '@/stores/settingStore'
 import ResultVideo from './ResultVideo.vue'
 
-const baseUrl = (import.meta.env.VITE_BASE_URL || '') + '/'
+import { baseUrl } from '@/utils/config'
 
 const props = defineProps<{
   result: ResultItemImpl

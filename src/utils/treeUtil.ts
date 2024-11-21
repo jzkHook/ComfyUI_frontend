@@ -42,7 +42,7 @@ export function buildTree<T>(
   return root
 }
 
-export function buildTree111<T>(
+export function buildTree111<T extends { path: string }>(
   items: T[],
   key: string | ((item: T) => string[])
 ): TreeNode {
