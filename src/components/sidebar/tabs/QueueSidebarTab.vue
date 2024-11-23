@@ -135,13 +135,17 @@ const ITEMS_PER_PAGE = 8
 const SCROLL_THRESHOLD = 100 // pixels from bottom to trigger load
 
 const allTasks = computed(() => {
-  return isInFolderView.value
+  const allTasksList = isInFolderView.value
     ? folderTask.value
       ? folderTask.value.flatten()
       : []
     : isExpanded.value
       ? queueStore.flatTasks
       : queueStore.tasks
+  console.log(allTasksList, 'allTasksList')
+  const ids = allTasksList.map((item) => item.promptId)
+  console.log(ids, 'allTasksList ids')
+  return allTasksList
 })
 const allGalleryItems = computed(() =>
   allTasks.value.flatMap((task: TaskItemImpl) => {
@@ -297,6 +301,7 @@ const toggleImageFit = () => {
 }
 
 onMounted(() => {
+  console.log('QueueSidebarTab  onMounted')
   api.addEventListener('status', onStatus)
   queueStore.update()
 })
@@ -309,12 +314,13 @@ onUnmounted(() => {
 watch(
   allTasks,
   (newTasks) => {
-    if (
-      visibleTasks.value.length === 0 ||
-      visibleTasks.value.length > newTasks.length
-    ) {
-      updateVisibleTasks()
-    }
+    // if (
+    //   visibleTasks.value.length === 0 ||
+    //   visibleTasks.value.length > newTasks.length
+    // ) {
+    //   updateVisibleTasks()
+    // }
+    updateVisibleTasks()
 
     nextTick(() => {
       checkAndLoadMore()

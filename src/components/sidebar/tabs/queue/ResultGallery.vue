@@ -135,10 +135,9 @@ img.galleria-image {
   /* Set z-index so the close button doesn't get hidden behind the image when image is large */
   z-index: 1;
 }
-/* .ft-galleria-comp .p-galleria-nav-button {
-  position: fixed!important;
-} */
-.p-galleria-mask .p-galleria-nav-button {
-  position: fixed !important;
+@layer primevue {
+  .ft-galleria-comp button.p-galleria-nav-button {
+    position: fixed !important;
+  }
 }
 </style>

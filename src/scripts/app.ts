@@ -1917,6 +1917,19 @@ export class ComfyApp {
     // if (!restored) {
     await this.loadGraphData()
     await useQueueStore().update()
+    const waittingTasks = useQueueStore().waittingTasks
+    console.log(waittingTasks, 'waittingTasks')
+    if (waittingTasks.length) {
+      const [latestWaittingTask] = waittingTasks.slice(-1)
+      if (latestWaittingTask) {
+        const task_id = latestWaittingTask?.promptId
+        const extra_pnginfo = latestWaittingTask?.extraPngInfo
+        if (task_id && extra_pnginfo) {
+          const nodes = extra_pnginfo.workflow.nodes || []
+          app.pollingPromptList(nodes, task_id)
+        }
+      }
+    }
     // }
 
     // // Save current workflow automatically
@@ -3078,17 +3091,12 @@ export class ComfyApp {
     this.canvas.centerOnNode(graphNode)
   }
 
-  async pollingPromptList(nodes: ComfyNode[]) {
-    const taskId = this.#queuePullingItems.slice(-1).pop()
+  async pollingPromptList(nodes: ComfyNode[], task_id?: string) {
+    const taskId = task_id || this.#queuePullingItems.slice(-1).pop()
     localStorage.setItem('currentTaskId', taskId)
 
     return new Promise(async (reslove) => {
       if (taskId) {
-        const detail = {
-          exec_info: {
-            queue_remaining: 1
-          }
-        }
         await this.pollingPrompt(taskId, nodes)
         // save images
         // {
@@ -3113,7 +3121,7 @@ export class ComfyApp {
     let timer = null,
       count = 0,
       runningNode = '0',
-      currentPosition = -1
+      currentPosition = 0
     return new Promise((resolve) => {
       if (timer) clearInterval(timer)
       timer = setInterval(async () => {
@@ -3122,14 +3130,16 @@ export class ComfyApp {
           if (res.code == 0) {
             const { status, result, tasks, current_pos, current_node } =
               res.data
-            if (currentPosition !== current_pos) {
+            if (currentPosition !== current_pos + 1) {
+              let queueCount = current_pos + 1
               const detail = {
                 exec_info: {
-                  queue_remaining: currentPosition + 1
+                  queue_remaining: queueCount
                 }
               }
+              console.log(queueCount, 'queue_remaining')
               api.dispatchEvent(new CustomEvent('status', { detail }))
-              currentPosition = current_pos
+              currentPosition = queueCount
             }
 
             let percent = 0,

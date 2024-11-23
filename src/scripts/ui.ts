@@ -369,6 +369,7 @@ export class ComfyUI {
     this.history = new ComfyList('History', 'history', true)
 
     api.addEventListener('status', () => {
+      console.log('ui queue update')
       this.queue.update()
       this.history.update()
     })
