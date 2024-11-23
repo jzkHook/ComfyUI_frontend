@@ -1,5 +1,6 @@
 <template>
   <Galleria
+    containerClass="ft-galleria-comp"
     v-model:visible="galleryVisible"
     @update:visible="handleVisibilityChange"
     :activeIndex="activeIndex"
@@ -27,7 +28,7 @@
         class="galleria-image"
         v-if="item.isImage"
       />
-      <ResultVideo v-else-if="item.isVideo" :result="item" />
+      <ResultVideo v-else-if="baseUrl + '/' + item.isVideo" :result="item" />
     </template>
   </Galleria>
 </template>
@@ -133,5 +134,11 @@ img.galleria-image {
 .p-galleria-close-button {
   /* Set z-index so the close button doesn't get hidden behind the image when image is large */
   z-index: 1;
+}
+/* .ft-galleria-comp .p-galleria-nav-button {
+  position: fixed!important;
+} */
+.p-galleria-mask .p-galleria-nav-button {
+  position: fixed !important;
 }
 </style>

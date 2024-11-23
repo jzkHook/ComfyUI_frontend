@@ -60,6 +60,7 @@ import { shallowReactive } from 'vue'
 import { useUrlSearchParams } from '@vueuse/core'
 import { ComfyNode } from '../types/comfyWorkflow'
 import { baseUrl } from '@/utils/config'
+import { useQueueStore } from '@/stores/queueStore'
 
 export const ANIM_PREVIEW_WIDGET = '$$comfy_animation_preview'
 
@@ -1915,6 +1916,7 @@ export class ComfyApp {
     // // We failed to restore a workflow so load the default
     // if (!restored) {
     await this.loadGraphData()
+    await useQueueStore().update()
     // }
 
     // // Save current workflow automatically

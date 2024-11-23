@@ -83,7 +83,7 @@ class ComfyApi extends EventTarget {
     }
     return fetch(this.apiURL(route), options).then((response) => {
       if (response.status === 401) {
-        window.parent.postMessage('toLogin', '*')
+        parent?.postMessage('toLogin', '*')
       } else {
         return response
       }
@@ -343,7 +343,7 @@ class ComfyApi extends EventTarget {
     }
     console.log(workflow_id, 'queuePrompt')
     const promptParams = `${new URLSearchParams({ workflow_id })}`
-    const res = await this.fetchApi(`/prompt/?${promptParams}`, {
+    const res = await this.fetchApi(`/task/?${promptParams}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -360,7 +360,7 @@ class ComfyApi extends EventTarget {
   }
 
   async getPromptPulling(task_id: string) {
-    const res = await this.fetchApi(`/task/${task_id}/status/`)
+    const res = await this.fetchApi(`/task/?task_id=${task_id}`)
     if (res.status !== 200) {
       return null
     }
@@ -566,7 +566,7 @@ class ComfyApi extends EventTarget {
    */
   async deleteItem(id: string) {
     // await this.#postItem(type, { delete: [id] })
-    const resp = await this.fetchApi(`/task/${id}/`, {
+    const resp = await this.fetchApi(`/task/?task_id=${id}`, {
       method: 'delete'
     })
     return resp.json()
@@ -576,11 +576,15 @@ class ComfyApi extends EventTarget {
    * Clears the specified list
    * @param {string} type The type of list to clear, queue or history
    */
-  async clearItems() {
+  async clearItems(type?: string) {
+    // 删除对应状态的任务，默认全部 all，支持：queue、processing 和 queue|processing
     // await this.#postItem(type, { clear: true })
-    const resp = await this.fetchApi(`/tasks/`, {
+    let api_base = `/tasks/`
+    if (type === 'queue') api_base += `?status=queue|processing`
+    const resp = await this.fetchApi(api_base, {
       method: 'delete'
     })
+    if (resp.status === 200) localStorage.removeItem('currentTaskId')
     return resp.json()
   }
 
@@ -590,7 +594,8 @@ class ComfyApi extends EventTarget {
   async interrupt() {
     const taskId = localStorage.getItem('currentTaskId')
     if (taskId) {
-      await this.deleteItem(taskId)
+      const resp = await this.deleteItem(taskId)
+      if (resp.status === 200) localStorage.removeItem('currentTaskId')
     }
     this.dispatchEvent(new CustomEvent('status', { detail: null }))
   }

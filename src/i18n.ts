@@ -70,7 +70,7 @@ const messages = {
         backToAllTasks: 'Back to All Tasks',
         containImagePreview: 'Fill Image Preview',
         coverImagePreview: 'Fit Image Preview',
-        clearPendingTasks: 'Clear Tasks'
+        clearPendingTasks: 'Clear Pending Tasks'
       }
     },
     menu: {
@@ -181,7 +181,7 @@ const messages = {
         backToAllTasks: '返回',
         containImagePreview: '填充图像预览',
         coverImagePreview: '适应图像预览',
-        clearPendingTasks: '清除任务'
+        clearPendingTasks: '清除待处理任务'
       }
     },
     menu: {
