@@ -391,8 +391,6 @@ export const useQueueStore = defineStore('queue', {
 
         this.runningTasks = toClassAll(queue.Running)
         this.pendingTasks = toClassAll(queue.Pending)
-        console.log(this.runningTasks, 'this.runningTasks')
-        console.log(this.pendingTasks, 'this.pendingTasks')
 
         const newHistoryItems = toClassAll(history.History)
         this.historyTasks = [...newHistoryItems]
@@ -453,7 +451,6 @@ export const useQueuePendingTaskCountStore = defineStore(
     actions: {
       update(e: CustomEvent<StatusWsMessageStatus>) {
         this.count = e.detail?.exec_info?.queue_remaining || 0
-        console.log('useQueuePendingTaskCountStore: ', this.count)
       }
     }
   }

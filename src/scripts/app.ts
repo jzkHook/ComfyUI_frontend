@@ -1918,7 +1918,6 @@ export class ComfyApp {
     await this.loadGraphData()
     await useQueueStore().update()
     const waittingTasks = useQueueStore().waittingTasks
-    console.log(waittingTasks, 'waittingTasks')
     if (waittingTasks.length) {
       const [latestWaittingTask] = waittingTasks.slice(-1)
       if (latestWaittingTask) {
@@ -2064,7 +2063,6 @@ export class ComfyApp {
             if (widgetType === 'COMBO') {
               if (nodeId === 'LoadImage' && inputName === 'image') {
                 const resp = await api.getUserUploads('image')
-                console.log(resp, 'resp')
                 const imagesArr = (resp ?? []).map((i) => i.filename)
                 inputData[0] = imagesArr || []
               }
@@ -2425,9 +2423,6 @@ export class ComfyApp {
         // If you break something in the backend and want to patch workflows in the frontend
         // This is the place to do this
         for (let widget of node.widgets) {
-          if (node.type === 'LoadImage') {
-            console.log(widget)
-          }
           if (node.type == 'KSampler' || node.type == 'KSamplerAdvanced') {
             if (widget.name == 'sampler_name') {
               if (
@@ -2679,14 +2674,12 @@ export class ComfyApp {
         for (let i = 0; i < batchCount; i++) {
           const p = await this.graphToPrompt()
           try {
-            let activeWorkflow = this.workflowManager.activeWorkflow
-            const { workflow: urlWorkflow } = useUrlSearchParams()
-            let workflow_id = (activeWorkflow.path ||
-              urlWorkflow ||
-              '') as string
+            let workflowInfo = this.getWorkflowInfo()
+            let workflow_id = workflowInfo.workflow_id
+
             if (!workflow_id) {
               const createworkflowResp = await api.createWorkflow({
-                name: activeWorkflow.name,
+                name: workflowInfo.workflow_name,
                 workflow_data: p.workflow,
                 description: ''
               })
@@ -2748,7 +2741,7 @@ export class ComfyApp {
     } finally {
       this.#processingQueue = false
     }
-    console.log('promptQueued')
+
     api.dispatchEvent(
       new CustomEvent('promptQueued', { detail: { number, batchCount } })
     )
@@ -3128,8 +3121,14 @@ export class ComfyApp {
         try {
           const res = await api.getPromptPulling(taskId)
           if (res.code == 0) {
-            const { status, result, tasks, current_pos, current_node } =
-              res.data
+            const {
+              status,
+              result,
+              tasks,
+              current_pos,
+              current_node,
+              workflow_id
+            } = res.data
             if (currentPosition !== current_pos + 1) {
               let queueCount = current_pos + 1
               const detail = {
@@ -3137,7 +3136,6 @@ export class ComfyApp {
                   queue_remaining: queueCount
                 }
               }
-              console.log(queueCount, 'queue_remaining')
               api.dispatchEvent(new CustomEvent('status', { detail }))
               currentPosition = queueCount
             }
@@ -3166,18 +3164,21 @@ export class ComfyApp {
                 }
                 percent = Math.floor((count / nodes.length) * 100)
               }
-              // 渲染生成结果
-              result.forEach((item) => {
-                api.dispatchEvent(
-                  new CustomEvent('executed', {
-                    detail: {
-                      node: item.id,
-                      display_node: item.display_node_id,
-                      output: item.output
-                    }
-                  })
-                )
-              })
+              let workflowInfo = this.getWorkflowInfo()
+              if (workflow_id === workflowInfo.workflow_id) {
+                // 渲染生成结果
+                result.forEach((item) => {
+                  api.dispatchEvent(
+                    new CustomEvent('executed', {
+                      detail: {
+                        node: item.id,
+                        display_node: item.display_node_id,
+                        output: item.output
+                      }
+                    })
+                  )
+                })
+              }
             }
 
             const str =
@@ -3220,6 +3221,16 @@ export class ComfyApp {
     if (!useFtToastStore()?.open) useFtToastStore()?.remove()
     api.dispatchEvent(new CustomEvent('status', { detail: null }))
     localStorage.removeItem('currentTaskId')
+  }
+
+  getWorkflowInfo() {
+    let activeWorkflow = this.workflowManager.activeWorkflow
+    const { workflow: urlWorkflow } = useUrlSearchParams()
+    let workflow_id = (activeWorkflow.path || urlWorkflow || '') as string
+    return {
+      workflow_id,
+      workflow_name: activeWorkflow?.name
+    }
   }
 }
 

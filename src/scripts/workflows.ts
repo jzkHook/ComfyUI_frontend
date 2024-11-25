@@ -107,7 +107,6 @@ export class ComfyWorkflowManager extends EventTarget {
    * @param {string | ComfyWorkflow | null} workflow
    */
   async setWorkflow(workflow) {
-    console.log(workflow, 'loadGraphData setWorkflow')
     if (workflow && typeof workflow === 'string') {
       const found = this.workflows.find((w) => w.path === workflow)
       if (found) {

@@ -142,9 +142,6 @@ const allTasks = computed(() => {
     : isExpanded.value
       ? queueStore.flatTasks
       : queueStore.tasks
-  console.log(allTasksList, 'allTasksList')
-  const ids = allTasksList.map((item) => item.promptId)
-  console.log(ids, 'allTasksList ids')
   return allTasksList
 })
 const allGalleryItems = computed(() =>
@@ -301,7 +298,6 @@ const toggleImageFit = () => {
 }
 
 onMounted(() => {
-  console.log('QueueSidebarTab  onMounted')
   api.addEventListener('status', onStatus)
   queueStore.update()
 })

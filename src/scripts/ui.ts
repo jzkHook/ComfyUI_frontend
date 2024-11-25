@@ -249,7 +249,6 @@ class ComfyList {
   }
 
   async load() {
-    console.log('load api.getItems(this.#type)')
     const items = await api.getItems(this.#type)
     this.element.replaceChildren(
       ...Object.keys(items).flatMap((section) => [
@@ -302,7 +301,6 @@ class ComfyList {
           textContent: 'Clear ' + this.#text,
           onclick: async () => {
             const resp = await api.clearItems()
-            console.log(resp)
             if (resp.code !== 0) return
             await this.load()
           }
@@ -369,7 +367,6 @@ export class ComfyUI {
     this.history = new ComfyList('History', 'history', true)
 
     api.addEventListener('status', () => {
-      console.log('ui queue update')
       this.queue.update()
       this.history.update()
     })

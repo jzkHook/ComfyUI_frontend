@@ -505,7 +505,6 @@ export const ComfyWidgets: Record<string, ComfyWidgetConstructor> = {
       // )
       const url = baseUrl + '/media/input'
       const imageSrc = `${url}/${encodeURIComponent(name)}?type=input${app.getPreviewFormatParam()}${app.getRandParam()}`
-      console.log('showImage', imageSrc)
       img.src = imageSrc
       // @ts-expect-error
       node.setSizeForImage?.()

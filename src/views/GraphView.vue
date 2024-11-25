@@ -104,7 +104,6 @@ const init = () => {
 
 const queuePendingTaskCountStore = useQueuePendingTaskCountStore()
 const onStatus = (e: CustomEvent<StatusWsMessageStatus>) => {
-  console.log('GraphView status')
   queuePendingTaskCountStore.update(e)
 }
 

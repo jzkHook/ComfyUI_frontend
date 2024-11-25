@@ -341,7 +341,7 @@ class ComfyApi extends EventTarget {
     } else if (number != 0) {
       body.number = number
     }
-    console.log(workflow_id, 'queuePrompt')
+
     const promptParams = `${new URLSearchParams({ workflow_id })}`
     const res = await this.fetchApi(`/task/?${promptParams}`, {
       method: 'POST',
